@@ -24,6 +24,7 @@ const (
 type Photo struct {
 	Name string
 	Date time.Time
+	FL   string
 	ISO  string
 	SS   string
 	F    string
@@ -77,12 +78,15 @@ func fetchImageList(dir string) []Photo {
 			}
 
 			bodyModelTag, _ := x.Get(exif.Model)
+			focal, _ := x.Get(exif.FocalLength)
 			lensModelTag, _ := x.Get(exif.LensModel)
 			ssTag, _ := x.Get(exif.ExposureTime)
 			fTag, _ := x.Get(exif.FNumber)
 			isoTag, _ := x.Get(exif.ISOSpeedRatings)
 			date, _ := x.DateTime()
 			bodyModel := strings.Replace(bodyModelTag.String(), "\"", "", -1)
+			numer, _, _ := focal.Rat2(0)
+			fl := strconv.FormatInt(numer, 10)
 			lensModel := strings.Replace(lensModelTag.String(), "\"", "", -1)
 			ss := strings.Replace(ssTag.String(), "\"", "", -1)
 			fStr := strings.Replace(fTag.String(), "\"", "", -1)
@@ -91,7 +95,7 @@ func fetchImageList(dir string) []Photo {
 			f2, _ := strconv.Atoi(fs[1])
 			f := strconv.FormatFloat(float64(f1)/float64(f2), 'f', 1, 64)
 			iso := isoTag.String()
-			list = append(list, Photo{Name: abspath, Date: date, SS: ss, F: f, ISO: iso, Body: bodyModel, Lens: lensModel})
+			list = append(list, Photo{Name: abspath, Date: date, FL: fl, SS: ss, F: f, ISO: iso, Body: bodyModel, Lens: lensModel})
 		}
 	}
 
@@ -136,6 +140,7 @@ func createMd(imageList []Photo) {
 		lines = addLine(lines, "\n")
 		lines = addLine(lines, photo.Body)
 		lines = addLine(lines, photo.Lens)
+		lines = addLine(lines, photo.FL+"mm")
 		lines = addLine(lines, photo.SS+"sec")
 		lines = addLine(lines, "F"+photo.F)
 		lines = addLine(lines, "ISO "+photo.ISO)
@@ -167,6 +172,7 @@ func createTxt(imageList []Photo) {
 		lines = addLine(lines, "\n")
 		lines = addLine(lines, photo.Body)
 		lines = addLine(lines, photo.Lens)
+		lines = addLine(lines, photo.FL+"mm")
 		lines = addLine(lines, photo.SS+"sec")
 		lines = addLine(lines, "F"+photo.F)
 		lines = addLine(lines, "ISO "+photo.ISO)
